@@ -1,98 +1,67 @@
+// User.
+
 package com.dialectek.orac;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class User
 {
-   public int                  id;
-   public String               description;
-   public Vector<Float>        attributes;
-   public Map<Integer, String> problems;
-   public Map<Integer, String> oldProblems;
-   public Vector<UserContent>  recommendations;
-   public Vector<UserContent>  usages;
+   public String                 name;
+   public String                 description;
+   public TreeMap<String, Float> ratings;
+   public TreeSet<String>        friends;
 
    // Constructors.
    public User()
    {
-      id              = -1;
-      description     = "None";
-      attributes      = new Vector<Float>();
-      problems        = new HashMap<Integer, String>();
-      oldProblems     = new HashMap<Integer, String>();
-      recommendations = new Vector<UserContent>();
-      usages          = new Vector<UserContent>();
+      name        = null;
+      description = "None";
+      ratings     = new TreeMap<String, Float>();
+      friends     = new TreeSet<String>();
    }
 
 
-   public User(int id, Vector<Float> attributes)
+   public User(String name)
    {
-      this.id         = id;
-      description     = "None";
-      this.attributes = attributes;
-      problems        = new HashMap<Integer, String>();
-      oldProblems     = new HashMap<Integer, String>();
-      recommendations = new Vector<UserContent>();
-      usages          = new Vector<UserContent>();
+      this.name   = name;
+      description = "None";
+      ratings     = new TreeMap<String, Float>();
+      friends     = new TreeSet<String>();
    }
 
 
-   // Use and rate content.
-   // Remove from recommendations.
-   public void useContent(int contentID, float rating)
+   // Befriend user.
+   public void befriend(String user)
    {
-      int i, j;
-
-      for (i = 0, j = usages.size(); i < j; i++)
-      {
-         UserContent usage = usages.get(i);
-         if (usage.id == contentID)
-         {
-            usage.value = rating;
-            break;
-         }
-      }
-      if (i == j)
-      {
-         usages.add(new UserContent(contentID, rating));
-      }
-
-      // Remove from recommmendations.
-      for (i = 0, j = recommendations.size(); i < j; i++)
-      {
-         UserContent recommendation = recommendations.get(i);
-         if (recommendation.id == contentID)
-         {
-            recommendations.remove(recommendation);
-            return;
-         }
-      }
+      friends.add(user);
    }
 
 
-   // Recommend content.
-   public void recommendContent(int contentID, int[] data)
+   // Unfriend user.
+   public void unfriend(String user)
    {
-      for (int i = 0, j = recommendations.size(); i < j; i++)
-      {
-         UserContent recommendation = recommendations.get(i);
-         if (recommendation.id == contentID)
-         {
-            recommendation.data = data;
-            return;
-         }
-      }
-      recommendations.add(new UserContent(contentID, data));
+      friends.remove(user);
+   }
+
+
+   // Unfriend all.
+   public void unfriendAll()
+   {
+      friends.clear();
+   }
+
+
+   // Rate resource.
+   public void rateResource(String resource, float rating)
+   {
+      ratings.put(resource, rating);
    }
 
 
    @Override
    public String toString()
    {
-      return(new StringBuffer(" ID : ").append(this.id)
-                .append(" Description : ").append(this.description)
-                .toString());
+      return(" name : " + name + " description : " + description);
    }
 }

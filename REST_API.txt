@@ -1,11 +1,55 @@
-REST API:
+Orac REST API:
 
-Rc1	user/recommend/create	Add a recommendation for viewing of content for a user	userID	        Integer	Yes	The user for whom the recommendation is being made
-                                                                                        contentID	Integer	Yes	The content that is recommended for the user
- 	 	 	                                                                data	        Integer	Yes	Other data supplied related to this recommendation (as a JSON array)
-Rc2	content/getCatalog	Get the catalog of content from the server	        None	 	 	        A Json associative array of content IDs and Content Objects
-Rc3	content/getMetadata	Get metadata associated with a piece of content	        contentID	Integer	Yes	A Json associative array of metadata keys and values
-Rc4	user/profile/get	Get a user's complete profile	                        userID	        Integer	Yes	The User object, in JSON
-Rc5	user/problems/get	Get a user's active problem list	                userID	        Integer	Yes	A Json array with problem IDs as keys, and descriptions as values
-RC6	user/problems/getOld	Get a user's inactive problem list	                userID	        Integer	Yes	A Json array with problem IDs as keys, and descriptions as values
+REST base address:
+http://<host>:8080/Orac/rest/service/
 
+Get user:
+get_user/{user_name}
+ 
+Get all users:
+get_users
+
+Add user:
+add_user/{user_name}
+
+Add user with description:
+add_described_user/{user_name}/{description}
+
+Delete user:
+delete_user/{user_name}
+
+Get resource:
+get_resource/{resource_name}
+
+Get all resources:
+get_resources
+
+Add resource.
+add_resource/{resource_name}
+
+Add a resource with description:
+add_described_resource/{resource_name}/{description}
+
+Delete resource:
+delete_resource/{resource_name}
+
+Recommend new friends for user:
+recommend_friends/{user_name}/{max_friends}
+
+Recommend new resources for user:
+recommend_resources/{user_name}/{max_resources}
+
+Get user friends:
+get_friends/{user_name}
+
+Befriend user:
+befriend_user/{user_name}/{friend_name}
+   
+Unfriend user:
+unfriend_user/{user_name}/{friend_name}
+
+Unfriend all:
+unfriend_all/{user_name}
+
+Rate resource:
+rate_resource/{user_name}/{resource_name}/{resource_rating}
