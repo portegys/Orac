@@ -27,18 +27,18 @@ public class OracClient
          Client       client       = Client.create(clientConfig);
 
          // Add some users.
-         String user1 = "User 1";
+         String user1 = "User1";
          addUser(user1, client);
-         String user2 = "User 2";
+         String user2 = "User2";
          addUser(user2, client);
-         String user3 = "User 3";
+         String user3 = "User3";
          addUser(user3, client);
          getUsers(client);
 
          // Add some resources.
-         String resource1 = "Resource 1";
+         String resource1 = "Resource1";
          addResource(resource1, client);
-         String resource2 = "Resource 2";
+         String resource2 = "Resource2";
          addResource(resource2, client);
          getResources(client);
 

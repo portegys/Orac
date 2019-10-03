@@ -53,3 +53,6 @@ unfriend_all/{user_name}
 
 Rate resource:
 rate_resource/{user_name}/{resource_name}/{resource_rating}
+
+Save data:
+save

@@ -6,6 +6,10 @@
 
 package com.dialectek.orac;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -171,6 +175,96 @@ public class Orac
       Resource r = resources.get(resource);
       if (r == null) { return(false); }
       u.rateResource(resource, rating);
+      return(true);
+   }
+
+
+   // Clear.
+   public synchronized void clear()
+   {
+      users.clear();
+      resources.clear();
+   }
+
+
+   // Save.
+   public synchronized boolean save(String filename)
+   {
+      DataOutputStream writer = null;
+
+      try
+      {
+         writer = new DataOutputStream(new FileOutputStream(filename));
+         writer.writeInt(users.size());
+         for (Map.Entry<String, User> entry : users.entrySet())
+         {
+            User u = entry.getValue();
+            u.save(writer);
+         }
+         writer.writeInt(resources.size());
+         for (Map.Entry<String, Resource> entry : resources.entrySet())
+         {
+            Resource r = entry.getValue();
+            r.save(writer);
+         }
+      }
+      catch (Exception e)
+      {
+         return(false);
+      }
+      finally
+      {
+         if (writer != null)
+         {
+            try
+            {
+               writer.close();
+            }
+            catch (Exception e) {}
+         }
+      }
+      return(true);
+   }
+
+
+   // Load.
+   public synchronized boolean load(String filename)
+   {
+      DataInputStream reader = null;
+
+      try
+      {
+         reader = new DataInputStream(new FileInputStream(filename));
+         users.clear();
+         int n = reader.readInt();
+         for (int i = 0; i < n; i++)
+         {
+            User u = User.load(reader);
+            users.put(u.name, u);
+         }
+         resources.clear();
+         n = reader.readInt();
+         for (int i = 0; i < n; i++)
+         {
+            Resource r = Resource.load(reader);
+            resources.put(r.name, r);
+         }
+      }
+      catch (Exception e)
+      {
+         return(false);
+      }
+      finally
+      {
+         if (reader != null)
+         {
+            try
+            {
+               reader.close();
+            }
+            catch (Exception e) {}
+         }
+      }
       return(true);
    }
 

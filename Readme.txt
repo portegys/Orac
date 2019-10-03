@@ -5,7 +5,7 @@ See rest/Orac.java and REST_API.txt for the REST API.
 See rest/client/OracClient.java for the REST client.
 
 Server:
-Build Orac eclipse project.
+Import and build Orac Eclipse project.
 Export Orac.war tomcat servlet.
 Deploy Orac.war to tomcat.
 

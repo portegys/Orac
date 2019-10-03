@@ -5,7 +5,6 @@ package com.dialectek.orac.rest;
 import com.dialectek.orac.User;
 import com.dialectek.orac.Resource;
 
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -21,22 +20,25 @@ import javax.ws.rs.core.Response;
 public class Orac
 {
    // Users.
-   public TreeMap<String, User> users;
+   public static TreeMap<String, User> users;
 
    // Resources.
-   public TreeMap<String, Resource> resources;
+   public static TreeMap<String, Resource> resources;
 
    // Orac recommender.
-   public com.dialectek.orac.Orac orac;
+   public static com.dialectek.orac.Orac orac;
 
-   // Constructor.
-   public Orac()
+   // File store.
+   public static final String ORAC_FILE = "orac.dat";
+
+   // Initialize.
+   static
    {
       users     = new TreeMap<String, User>();
       resources = new TreeMap<String, Resource>();
       orac      = new com.dialectek.orac.Orac(users, resources);
+      orac.load(ORAC_FILE);
    }
-
 
    // Get user.
    @GET
@@ -48,11 +50,9 @@ public class Orac
 
       if (user != null)
       {
-         String output = "name: " + user_name;
-         if (user.description != null)
-         {
-            output += ", description: " + user.description;
-         }
+         String output = user.toString();
+         output += " ratings : " + user.ratings.entrySet().toString();
+         output += " friends : " + user.friends.toString();
          return(Response.status(200).entity(output).build());
       }
       else
@@ -68,18 +68,8 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getUsers()
    {
-      String output = "users:\n";
+      String output = users.keySet().toString();
 
-      for (Map.Entry<String, User> user : users.entrySet())
-      {
-         User u = user.getValue();
-         output += "name: " + u.name;
-         if (u.description != null)
-         {
-            output += ", description: " + u.description;
-         }
-         output += "\n";
-      }
       return(Response.status(200).entity(output).build());
    }
 
@@ -131,11 +121,7 @@ public class Orac
 
       if (resource != null)
       {
-         String output = "name: " + resource_name;
-         if (resource.description != null)
-         {
-            output += ", description: " + resource.description;
-         }
+         String output = resource.toString();
          return(Response.status(200).entity(output).build());
       }
       else
@@ -151,18 +137,8 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getResources()
    {
-      String output = "resources:\n";
+      String output = resources.keySet().toString();
 
-      for (Map.Entry<String, Resource> resource : resources.entrySet())
-      {
-         Resource r = resource.getValue();
-         output += "name: " + r.name;
-         if (r.description != null)
-         {
-            output += ", description: " + r.description;
-         }
-         output += "\n";
-      }
       return(Response.status(200).entity(output).build());
    }
 
@@ -229,11 +205,7 @@ public class Orac
             return(Response.status(400).entity("invalid max_friends parameter").build());
          }
          Vector<String> friends = orac.recommendFriends(user_name, maxFriends);
-         String         output  = "friends:\n";
-         for (String friend : friends)
-         {
-            output += "name: " + friend + "\n";
-         }
+         String         output  = friends.toString();
          return(Response.status(200).entity(output).build());
       }
       else
@@ -268,11 +240,7 @@ public class Orac
             return(Response.status(400).entity("invalid max_resources parameter").build());
          }
          Vector<String> resourceList = orac.recommendResources(user_name, maxResources);
-         String         output       = "resources:\n";
-         for (String resource : resourceList)
-         {
-            output += "name: " + resource + "\n";
-         }
+         String         output       = resourceList.toString();
          return(Response.status(200).entity(output).build());
       }
       else
@@ -292,11 +260,7 @@ public class Orac
 
       if (user != null)
       {
-         String output = "friends:\n";
-         for (String friend : user.friends)
-         {
-            output += "name: " + friend + "\n";
-         }
+         String output = user.friends.toString();
          return(Response.status(200).entity(output).build());
       }
       else
@@ -418,6 +382,34 @@ public class Orac
          {
             return(Response.status(400).build());
          }
+      }
+      else
+      {
+         return(Response.status(404).build());
+      }
+   }
+
+
+   // Clear.
+   @GET
+   @Path("/clear")
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response clear()
+   {
+      orac.clear();
+      return(Response.status(200).build());
+   }
+
+
+   // Save.
+   @GET
+   @Path("/save")
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response save()
+   {
+      if (orac.save(ORAC_FILE))
+      {
+         return(Response.status(200).build());
       }
       else
       {

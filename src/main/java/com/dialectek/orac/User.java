@@ -2,15 +2,27 @@
 
 package com.dialectek.orac;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class User
 {
-   public String                 name;
-   public String                 description;
+   // Name.
+   public String name;
+
+   // Description.
+   public String description;
+
+   // Resource ratings.
    public TreeMap<String, Float> ratings;
-   public TreeSet<String>        friends;
+
+   // Friends.
+   public TreeSet<String> friends;
 
    // Constructors.
    public User()
@@ -56,6 +68,57 @@ public class User
    public void rateResource(String resource, float rating)
    {
       ratings.put(resource, rating);
+   }
+
+
+   // Save.
+   public void save(DataOutputStream writer) throws IOException
+   {
+      writer.writeUTF(name);
+      writer.writeUTF(description);
+      writer.writeInt(ratings.size());
+      for (Map.Entry<String, Float> entry : ratings.entrySet())
+      {
+         String resource = entry.getKey();
+         writer.writeUTF(resource);
+         float rating = entry.getValue();
+         writer.writeFloat(rating);
+      }
+      writer.writeInt(friends.size());
+      for (String friend : friends)
+      {
+         writer.writeUTF(friend);
+      }
+      writer.flush();
+   }
+
+
+   // Load.
+   public static User load(DataInputStream reader) throws IOException
+   {
+      try
+      {
+         String name = reader.readUTF();
+         User   user = new User(name);
+         user.description = reader.readUTF();
+         int n = reader.readInt();
+         for (int i = 0; i < n; i++)
+         {
+            String resource = reader.readUTF();
+            float  rating   = reader.readFloat();
+            user.ratings.put(resource, rating);
+         }
+         n = reader.readInt();
+         for (int i = 0; i < n; i++)
+         {
+            String friend = reader.readUTF();
+            user.friends.add(friend);
+         }
+         return(user);
+      }
+      catch (EOFException e) {
+         return(null);
+      }
    }
 
 
