@@ -56,6 +56,13 @@ public class OracClient
 
          // Recommend new resources.
          recommendResources(user1, 3, client);
+
+         // Validate.
+         getUser(user1, client);
+         getUser(user2, client);
+         getUser(user3, client);
+         getResource(resource1, client);
+         getResource(resource2, client);
       }
       catch (Exception e) {
          e.printStackTrace();
@@ -140,6 +147,20 @@ public class OracClient
          WebResource webResource =
             client.resource(REST_ADDRESS + "delete_resource/" + resourceName);
          webResource.delete();
+      }
+      catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+
+
+   public static void getResource(String resourceName, Client client)
+   {
+      try
+      {
+         WebResource webResource =
+            client.resource(REST_ADDRESS + "get_resource/" + resourceName);
+         System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
       }
       catch (Exception e) {
          e.printStackTrace();
@@ -251,7 +272,7 @@ public class OracClient
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "recommend_resources/" + userName + "/" + resourceName + "/" + rating);
+            client.resource(REST_ADDRESS + "rate_resource/" + userName + "/" + resourceName + "/" + rating);
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
