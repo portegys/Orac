@@ -52,13 +52,9 @@ public class Orac
       synchronized (lock)
       {
          User user = users.get(user_name);
-
          if (user != null)
          {
-            String output = user.toString();
-            output += " ratings : " + user.ratings.entrySet().toString();
-            output += " friends : " + user.friends.toString();
-            return(Response.status(200).entity(output).build());
+            return(Response.status(200).entity(user.toString()).build());
          }
          else
          {
@@ -122,7 +118,7 @@ public class Orac
    {
       synchronized (lock)
       {
-         orac.removeUser(user_name);
+         orac.deleteUser(user_name);
          return(Response.status(200).build());
       }
    }
@@ -139,8 +135,7 @@ public class Orac
          Resource resource = resources.get(resource_name);
          if (resource != null)
          {
-            String output = resource.toString();
-            return(Response.status(200).entity(output).build());
+            return(Response.status(200).entity(resource.toString()).build());
          }
          else
          {
@@ -204,7 +199,7 @@ public class Orac
    {
       synchronized (lock)
       {
-         orac.removeResource(resource_name);
+         orac.deleteResource(resource_name);
          return(Response.status(200).build());
       }
    }
@@ -236,8 +231,7 @@ public class Orac
                return(Response.status(400).entity("invalid max_friends parameter").build());
             }
             Vector<String> friends = orac.recommendFriends(user_name, maxFriends);
-            String         output  = friends.toString();
-            return(Response.status(200).entity(output).build());
+            return(Response.status(200).entity(friends.toString()).build());
          }
          else
          {
@@ -273,8 +267,7 @@ public class Orac
                return(Response.status(400).entity("invalid max_resources parameter").build());
             }
             Vector<String> resourceList = orac.recommendResources(user_name, maxResources);
-            String         output       = resourceList.toString();
-            return(Response.status(200).entity(output).build());
+            return(Response.status(200).entity(resourceList.toString()).build());
          }
          else
          {
@@ -295,8 +288,7 @@ public class Orac
          User user = users.get(user_name);
          if (user != null)
          {
-            String output = user.friends.toString();
-            return(Response.status(200).entity(output).build());
+            return(Response.status(200).entity(user.friends.toString()).build());
          }
          else
          {

@@ -40,8 +40,8 @@ public class Orac
    }
 
 
-   // Remove user.
-   public synchronized boolean removeUser(String user)
+   // Delete user.
+   public synchronized boolean deleteUser(String user)
    {
       if (!users.containsKey(user)) { return(false); }
       users.remove(user);
@@ -63,8 +63,8 @@ public class Orac
    }
 
 
-   // Remove resource.
-   public synchronized boolean removeResource(String resource)
+   // Delete resource.
+   public synchronized boolean deleteResource(String resource)
    {
       if (!resources.containsKey(resource)) { return(false); }
       resources.remove(resource);
@@ -309,5 +309,12 @@ public class Orac
          String resource = recommendations.get(i);
          System.out.println("Resource name=" + resource);
       }
+
+      // Validate.
+      System.out.println(orac.users.get(user1).toString());
+      System.out.println(orac.users.get(user2).toString());
+      System.out.println(orac.users.get(user3).toString());
+      System.out.println(orac.resources.get(resource1).toString());
+      System.out.println(orac.resources.get(resource2).toString());
    }
 }

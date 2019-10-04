@@ -125,6 +125,10 @@ public class User
    @Override
    public String toString()
    {
-      return(" name : " + name + " description : " + description);
+      String output = "name : " + name + " description : " + description;
+
+      output += " ratings : " + ratings.entrySet().toString();
+      output += " friends : " + friends.toString();
+      return(output);
    }
 }

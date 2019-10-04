@@ -125,14 +125,6 @@ public class Recommender
       {
          LinearNNSearch knn       = new LinearNNSearch(dataset);
          Instances      neighbors = knn.kNearestNeighbours(userInstance, maxFriends);
-         System.out.println("Nearest neighbors:");
-         System.out.println(neighbors);
-         double[] distances = knn.getDistances();
-         System.out.println("Distances:");
-         for (int i = 0; i < distances.length; i++)
-         {
-            System.out.println(distances[i] + "");
-         }
          recommendations = getNeighborNames(neighbors);
       }
       catch (Exception e) {
