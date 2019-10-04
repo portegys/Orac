@@ -4,6 +4,7 @@ package com.dialectek.orac.rest.client;
 
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.httpclient.util.URIUtil;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
@@ -27,7 +28,7 @@ public class OracClient
          Client       client       = Client.create(clientConfig);
 
          // Add some users.
-         String user1 = "User1";
+         String user1 = URIUtil.encodeQuery("User 1");
          addUser(user1, client);
          String user2 = "User2";
          addUser(user2, client);
