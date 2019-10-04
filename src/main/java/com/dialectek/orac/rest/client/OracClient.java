@@ -91,7 +91,7 @@ public class OracClient
       {
          WebResource webResource =
             client.resource(REST_ADDRESS + "delete_user/" + userName);
-         webResource.delete();
+         webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
          e.printStackTrace();
@@ -147,7 +147,7 @@ public class OracClient
       {
          WebResource webResource =
             client.resource(REST_ADDRESS + "delete_resource/" + resourceName);
-         webResource.delete();
+         webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
          e.printStackTrace();

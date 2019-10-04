@@ -9,7 +9,6 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -31,6 +30,9 @@ public class Orac
    // File store.
    public static final String ORAC_FILE = "orac.dat";
 
+   // Synchronization.
+   private static Object lock;
+
    // Initialize.
    static
    {
@@ -38,6 +40,7 @@ public class Orac
       resources = new TreeMap<String, Resource>();
       orac      = new com.dialectek.orac.Orac(users, resources);
       orac.load(ORAC_FILE);
+      lock = new Object();
    }
 
    // Get user.
@@ -46,18 +49,21 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getUser(@PathParam ("user_name") String user_name)
    {
-      User user = users.get(user_name);
+      synchronized (lock)
+      {
+         User user = users.get(user_name);
 
-      if (user != null)
-      {
-         String output = user.toString();
-         output += " ratings : " + user.ratings.entrySet().toString();
-         output += " friends : " + user.friends.toString();
-         return(Response.status(200).entity(output).build());
-      }
-      else
-      {
-         return(Response.status(404).build());
+         if (user != null)
+         {
+            String output = user.toString();
+            output += " ratings : " + user.ratings.entrySet().toString();
+            output += " friends : " + user.friends.toString();
+            return(Response.status(200).entity(output).build());
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
       }
    }
 
@@ -68,9 +74,11 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getUsers()
    {
-      String output = users.keySet().toString();
-
-      return(Response.status(200).entity(output).build());
+      synchronized (lock)
+      {
+         String output = users.keySet().toString();
+         return(Response.status(200).entity(output).build());
+      }
    }
 
 
@@ -80,8 +88,11 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response addUser(@PathParam ("user_name") String user_name)
    {
-      users.put(user_name, new User(user_name));
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         orac.addUser(user_name);
+         return(Response.status(200).build());
+      }
    }
 
 
@@ -92,22 +103,28 @@ public class Orac
    public Response addUser(@PathParam ("user_name") String   user_name,
                            @PathParam ("description") String description)
    {
-      User user = new User(user_name);
-
-      user.description = description;
-      users.put(user_name, user);
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         orac.addUser(user_name);
+         User user = users.get(user_name);
+         user.description = description;
+         users.put(user_name, user);
+         return(Response.status(200).build());
+      }
    }
 
 
    // Delete user.
-   @DELETE
+   @GET
    @Path("/delete_user/{user_name}")
    @Produces(MediaType.TEXT_PLAIN)
    public Response deleteUser(@PathParam ("user_name") String user_name)
    {
-      users.remove(user_name);
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         orac.removeUser(user_name);
+         return(Response.status(200).build());
+      }
    }
 
 
@@ -117,16 +134,18 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getResource(@PathParam ("resource_name") String resource_name)
    {
-      Resource resource = resources.get(resource_name);
-
-      if (resource != null)
+      synchronized (lock)
       {
-         String output = resource.toString();
-         return(Response.status(200).entity(output).build());
-      }
-      else
-      {
-         return(Response.status(404).build());
+         Resource resource = resources.get(resource_name);
+         if (resource != null)
+         {
+            String output = resource.toString();
+            return(Response.status(200).entity(output).build());
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
       }
    }
 
@@ -137,9 +156,11 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getResources()
    {
-      String output = resources.keySet().toString();
-
-      return(Response.status(200).entity(output).build());
+      synchronized (lock)
+      {
+         String output = resources.keySet().toString();
+         return(Response.status(200).entity(output).build());
+      }
    }
 
 
@@ -149,8 +170,11 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response addResource(@PathParam ("resource_name") String resource_name)
    {
-      resources.put(resource_name, new Resource(resource_name));
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         resources.put(resource_name, new Resource(resource_name));
+         return(Response.status(200).build());
+      }
    }
 
 
@@ -161,22 +185,28 @@ public class Orac
    public Response addResource(@PathParam ("resource_name") String resource_name,
                                @PathParam ("description") String   description)
    {
-      Resource resource = new Resource(resource_name);
-
-      resource.description = description;
-      resources.put(resource_name, resource);
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         orac.addResource(resource_name);
+         Resource resource = resources.get(resource_name);
+         resource.description = description;
+         resources.put(resource_name, resource);
+         return(Response.status(200).build());
+      }
    }
 
 
    // Delete resource.
-   @DELETE
+   @GET
    @Path("/delete_resource/{resource_name}")
    @Produces(MediaType.TEXT_PLAIN)
    public Response deleteResource(@PathParam ("resource_name") String resource_name)
    {
-      resources.remove(resource_name);
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         orac.removeResource(resource_name);
+         return(Response.status(200).build());
+      }
    }
 
 
@@ -187,30 +217,32 @@ public class Orac
    public Response recommendFriends(@PathParam ("user_name") String   user_name,
                                     @PathParam ("max_friends") String max_friends)
    {
-      User user = users.get(user_name);
-
-      if (user != null)
+      synchronized (lock)
       {
-         int maxFriends = 0;
-         try
+         User user = users.get(user_name);
+         if (user != null)
          {
-            maxFriends = Integer.parseInt(max_friends);
+            int maxFriends = 0;
+            try
+            {
+               maxFriends = Integer.parseInt(max_friends);
+            }
+            catch (NumberFormatException e)
+            {
+               return(Response.status(400).entity("invalid max_friends parameter").build());
+            }
+            if (maxFriends < 0)
+            {
+               return(Response.status(400).entity("invalid max_friends parameter").build());
+            }
+            Vector<String> friends = orac.recommendFriends(user_name, maxFriends);
+            String         output  = friends.toString();
+            return(Response.status(200).entity(output).build());
          }
-         catch (NumberFormatException e)
+         else
          {
-            return(Response.status(400).entity("invalid max_friends parameter").build());
+            return(Response.status(404).build());
          }
-         if (maxFriends < 0)
-         {
-            return(Response.status(400).entity("invalid max_friends parameter").build());
-         }
-         Vector<String> friends = orac.recommendFriends(user_name, maxFriends);
-         String         output  = friends.toString();
-         return(Response.status(200).entity(output).build());
-      }
-      else
-      {
-         return(Response.status(404).build());
       }
    }
 
@@ -222,30 +254,32 @@ public class Orac
    public Response recommendResources(@PathParam ("user_name") String     user_name,
                                       @PathParam ("max_resources") String max_resources)
    {
-      User user = users.get(user_name);
-
-      if (user != null)
+      synchronized (lock)
       {
-         int maxResources = 0;
-         try
+         User user = users.get(user_name);
+         if (user != null)
          {
-            maxResources = Integer.parseInt(max_resources);
+            int maxResources = 0;
+            try
+            {
+               maxResources = Integer.parseInt(max_resources);
+            }
+            catch (NumberFormatException e)
+            {
+               return(Response.status(400).entity("invalid max_resources parameter").build());
+            }
+            if (maxResources < 0)
+            {
+               return(Response.status(400).entity("invalid max_resources parameter").build());
+            }
+            Vector<String> resourceList = orac.recommendResources(user_name, maxResources);
+            String         output       = resourceList.toString();
+            return(Response.status(200).entity(output).build());
          }
-         catch (NumberFormatException e)
+         else
          {
-            return(Response.status(400).entity("invalid max_resources parameter").build());
+            return(Response.status(404).build());
          }
-         if (maxResources < 0)
-         {
-            return(Response.status(400).entity("invalid max_resources parameter").build());
-         }
-         Vector<String> resourceList = orac.recommendResources(user_name, maxResources);
-         String         output       = resourceList.toString();
-         return(Response.status(200).entity(output).build());
-      }
-      else
-      {
-         return(Response.status(404).build());
       }
    }
 
@@ -256,16 +290,18 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response getFriends(@PathParam ("user_name") String user_name)
    {
-      User user = users.get(user_name);
-
-      if (user != null)
+      synchronized (lock)
       {
-         String output = user.friends.toString();
-         return(Response.status(200).entity(output).build());
-      }
-      else
-      {
-         return(Response.status(404).build());
+         User user = users.get(user_name);
+         if (user != null)
+         {
+            String output = user.friends.toString();
+            return(Response.status(200).entity(output).build());
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
       }
    }
 
@@ -277,23 +313,25 @@ public class Orac
    public Response befriendUser(@PathParam ("user_name") String   user_name,
                                 @PathParam ("friend_name") String friend_name)
    {
-      User user   = users.get(user_name);
-      User friend = users.get(friend_name);
-
-      if ((user != null) && (friend != null))
+      synchronized (lock)
       {
-         if (orac.befriendUser(user_name, friend_name))
+         User user   = users.get(user_name);
+         User friend = users.get(friend_name);
+         if ((user != null) && (friend != null))
          {
-            return(Response.status(200).build());
+            if (orac.befriendUser(user_name, friend_name))
+            {
+               return(Response.status(200).build());
+            }
+            else
+            {
+               return(Response.status(400).build());
+            }
          }
          else
          {
-            return(Response.status(400).build());
+            return(Response.status(404).build());
          }
-      }
-      else
-      {
-         return(Response.status(404).build());
       }
    }
 
@@ -305,23 +343,25 @@ public class Orac
    public Response unfriendUser(@PathParam ("user_name") String   user_name,
                                 @PathParam ("friend_name") String friend_name)
    {
-      User user   = users.get(user_name);
-      User friend = users.get(friend_name);
-
-      if ((user != null) && (friend != null))
+      synchronized (lock)
       {
-         if (orac.unfriendUser(user_name, friend_name))
+         User user   = users.get(user_name);
+         User friend = users.get(friend_name);
+         if ((user != null) && (friend != null))
          {
-            return(Response.status(200).build());
+            if (orac.unfriendUser(user_name, friend_name))
+            {
+               return(Response.status(200).build());
+            }
+            else
+            {
+               return(Response.status(400).build());
+            }
          }
          else
          {
-            return(Response.status(400).build());
+            return(Response.status(404).build());
          }
-      }
-      else
-      {
-         return(Response.status(404).build());
       }
    }
 
@@ -332,22 +372,25 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response unfriendAll(@PathParam ("name") String name)
    {
-      User user = users.get(name);
-
-      if (user != null)
+      synchronized (lock)
       {
-         if (orac.unfriendAll(name))
+         User user = users.get(name);
+
+         if (user != null)
          {
-            return(Response.status(200).build());
+            if (orac.unfriendAll(name))
+            {
+               return(Response.status(200).build());
+            }
+            else
+            {
+               return(Response.status(400).build());
+            }
          }
          else
          {
-            return(Response.status(400).build());
+            return(Response.status(404).build());
          }
-      }
-      else
-      {
-         return(Response.status(404).build());
       }
    }
 
@@ -360,32 +403,35 @@ public class Orac
                                 @PathParam ("resource_name") String   resource_name,
                                 @PathParam ("resource_rating") String resource_rating)
    {
-      User     user     = users.get(user_name);
-      Resource resource = resources.get(resource_name);
-
-      if ((user != null) && (resource != null))
+      synchronized (lock)
       {
-         float rating = 0.0f;
-         try
+         User     user     = users.get(user_name);
+         Resource resource = resources.get(resource_name);
+
+         if ((user != null) && (resource != null))
          {
-            rating = Float.parseFloat(resource_rating);
-         }
-         catch (NumberFormatException e)
-         {
-            return(Response.status(400).entity("invalid resource_rating parameter").build());
-         }
-         if (orac.rateResource(user_name, resource_name, rating))
-         {
-            return(Response.status(200).build());
+            float rating = 0.0f;
+            try
+            {
+               rating = Float.parseFloat(resource_rating);
+            }
+            catch (NumberFormatException e)
+            {
+               return(Response.status(400).entity("invalid resource_rating parameter").build());
+            }
+            if (orac.rateResource(user_name, resource_name, rating))
+            {
+               return(Response.status(200).build());
+            }
+            else
+            {
+               return(Response.status(400).build());
+            }
          }
          else
          {
-            return(Response.status(400).build());
+            return(Response.status(404).build());
          }
-      }
-      else
-      {
-         return(Response.status(404).build());
       }
    }
 
@@ -396,8 +442,11 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response clear()
    {
-      orac.clear();
-      return(Response.status(200).build());
+      synchronized (lock)
+      {
+         orac.clear();
+         return(Response.status(200).build());
+      }
    }
 
 
@@ -407,13 +456,16 @@ public class Orac
    @Produces(MediaType.TEXT_PLAIN)
    public Response save()
    {
-      if (orac.save(ORAC_FILE))
+      synchronized (lock)
       {
-         return(Response.status(200).build());
-      }
-      else
-      {
-         return(Response.status(404).build());
+         if (orac.save(ORAC_FILE))
+         {
+            return(Response.status(200).build());
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
       }
    }
 }
