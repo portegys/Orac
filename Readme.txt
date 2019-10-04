@@ -1,5 +1,7 @@
 Orac recommendation system.
 
+Users rate and recommend resources.
+
 See Orac.java for the java API.
 See rest/Orac.java and REST_API.txt for the REST API.
 See rest/client/OracClient.java for the REST client.
