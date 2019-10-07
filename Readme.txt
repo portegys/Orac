@@ -2,13 +2,12 @@ Orac recommendation system.
 
 Users rate and recommend resources.
 
-1. Add users and resources.
+1. Add users.
 2. Users rate resources.
-3. Recommend to users friends that have similar resource ratings.
-4. Add friends to users.
-5. Use friends' ratings to recommend resources to users.
-6. Users rate recommended resources.
-7. Repeat.
+3. Update users' friends to be those users that have similar resource ratings.
+4. Use friends' ratings to recommend resources to user.
+5. Rate recommended resources.
+6. Repeat.
 
 See Orac.java for the java API.
 See rest/Orac.java and REST_API.txt for the REST API.

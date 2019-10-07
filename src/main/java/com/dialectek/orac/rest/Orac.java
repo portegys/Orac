@@ -3,11 +3,7 @@
 package com.dialectek.orac.rest;
 
 import com.dialectek.orac.User;
-import com.dialectek.orac.Resource;
-
 import java.util.TreeMap;
-import java.util.Vector;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -21,9 +17,6 @@ public class Orac
    // Users.
    public static TreeMap<String, User> users;
 
-   // Resources.
-   public static TreeMap<String, Resource> resources;
-
    // Orac recommender.
    public static com.dialectek.orac.Orac orac;
 
@@ -36,9 +29,8 @@ public class Orac
    // Initialize.
    static
    {
-      users     = new TreeMap<String, User>();
-      resources = new TreeMap<String, Resource>();
-      orac      = new com.dialectek.orac.Orac(users, resources);
+      users = new TreeMap<String, User>();
+      orac  = new com.dialectek.orac.Orac(users);
       orac.load(ORAC_FILE);
       lock = new Object();
    }
@@ -47,7 +39,7 @@ public class Orac
    @GET
    @Path("/get_user/{user_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response getUser(@PathParam ("user_name") String user_name)
+   public Response get_user(@PathParam ("user_name") String user_name)
    {
       synchronized (lock)
       {
@@ -68,7 +60,7 @@ public class Orac
    @GET
    @Path("/get_users")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response getUsers()
+   public Response get_users()
    {
       synchronized (lock)
       {
@@ -82,11 +74,11 @@ public class Orac
    @GET
    @Path("/add_user/{user_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response addUser(@PathParam ("user_name") String user_name)
+   public Response add_user(@PathParam ("user_name") String user_name)
    {
       synchronized (lock)
       {
-         orac.addUser(user_name);
+         orac.add_user(user_name);
          return(Response.status(200).build());
       }
    }
@@ -96,12 +88,12 @@ public class Orac
    @GET
    @Path("/add_described_user/{user_name}/{description}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response addUser(@PathParam ("user_name") String   user_name,
-                           @PathParam ("description") String description)
+   public Response add_user(@PathParam ("user_name") String   user_name,
+                            @PathParam ("description") String description)
    {
       synchronized (lock)
       {
-         orac.addUser(user_name);
+         orac.add_user(user_name);
          User user = users.get(user_name);
          user.description = description;
          users.put(user_name, user);
@@ -114,92 +106,11 @@ public class Orac
    @GET
    @Path("/delete_user/{user_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response deleteUser(@PathParam ("user_name") String user_name)
+   public Response delete_user(@PathParam ("user_name") String user_name)
    {
       synchronized (lock)
       {
-         orac.deleteUser(user_name);
-         return(Response.status(200).build());
-      }
-   }
-
-
-   // Get resource.
-   @GET
-   @Path("/get_resource/{resource_name}")
-   @Produces(MediaType.TEXT_PLAIN)
-   public Response getResource(@PathParam ("resource_name") String resource_name)
-   {
-      synchronized (lock)
-      {
-         Resource resource = resources.get(resource_name);
-         if (resource != null)
-         {
-            return(Response.status(200).entity(resource.toString()).build());
-         }
-         else
-         {
-            return(Response.status(404).build());
-         }
-      }
-   }
-
-
-   // Get all resources.
-   @GET
-   @Path("/get_resources")
-   @Produces(MediaType.TEXT_PLAIN)
-   public Response getResources()
-   {
-      synchronized (lock)
-      {
-         String output = resources.keySet().toString();
-         return(Response.status(200).entity(output).build());
-      }
-   }
-
-
-   // Add resource.
-   @GET
-   @Path("/add_resource/{resource_name}")
-   @Produces(MediaType.TEXT_PLAIN)
-   public Response addResource(@PathParam ("resource_name") String resource_name)
-   {
-      synchronized (lock)
-      {
-         resources.put(resource_name, new Resource(resource_name));
-         return(Response.status(200).build());
-      }
-   }
-
-
-   // Add resource with description.
-   @GET
-   @Path("/add_described_resource/{resource_name}/{description}")
-   @Produces(MediaType.TEXT_PLAIN)
-   public Response addResource(@PathParam ("resource_name") String resource_name,
-                               @PathParam ("description") String   description)
-   {
-      synchronized (lock)
-      {
-         orac.addResource(resource_name);
-         Resource resource = resources.get(resource_name);
-         resource.description = description;
-         resources.put(resource_name, resource);
-         return(Response.status(200).build());
-      }
-   }
-
-
-   // Delete resource.
-   @GET
-   @Path("/delete_resource/{resource_name}")
-   @Produces(MediaType.TEXT_PLAIN)
-   public Response deleteResource(@PathParam ("resource_name") String resource_name)
-   {
-      synchronized (lock)
-      {
-         orac.deleteResource(resource_name);
+         orac.delete_user(user_name);
          return(Response.status(200).build());
       }
    }
@@ -209,8 +120,8 @@ public class Orac
    @GET
    @Path("/recommend_friends/{user_name}/{max_friends}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response recommendFriends(@PathParam ("user_name") String   user_name,
-                                    @PathParam ("max_friends") String max_friends)
+   public Response recommend_friends(@PathParam ("user_name") String   user_name,
+                                     @PathParam ("max_friends") String max_friends)
    {
       synchronized (lock)
       {
@@ -230,7 +141,7 @@ public class Orac
             {
                return(Response.status(400).entity("invalid max_friends parameter").build());
             }
-            Vector<String> friends = orac.recommendFriends(user_name, maxFriends);
+            TreeMap<String, Float> friends = orac.recommend_friends(user_name, maxFriends);
             return(Response.status(200).entity(friends.toString()).build());
          }
          else
@@ -245,8 +156,8 @@ public class Orac
    @GET
    @Path("/recommend_resources/{user_name}/{max_resources}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response recommendResources(@PathParam ("user_name") String     user_name,
-                                      @PathParam ("max_resources") String max_resources)
+   public Response recommend_resources(@PathParam ("user_name") String     user_name,
+                                       @PathParam ("max_resources") String max_resources)
    {
       synchronized (lock)
       {
@@ -266,7 +177,7 @@ public class Orac
             {
                return(Response.status(400).entity("invalid max_resources parameter").build());
             }
-            Vector<String> resourceList = orac.recommendResources(user_name, maxResources);
+            TreeMap<String, Float> resourceList = orac.recommend_resources(user_name, maxResources);
             return(Response.status(200).entity(resourceList.toString()).build());
          }
          else
@@ -281,7 +192,7 @@ public class Orac
    @GET
    @Path("/get_friends/{user_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response getFriends(@PathParam ("user_name") String user_name)
+   public Response get_friends(@PathParam ("user_name") String user_name)
    {
       synchronized (lock)
       {
@@ -298,12 +209,12 @@ public class Orac
    }
 
 
-   // Befriend user.
+   // Add friend.
    @GET
-   @Path("/befriend_user/{user_name}/{friend_name}")
+   @Path("/add_friend/{user_name}/{friend_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response befriendUser(@PathParam ("user_name") String   user_name,
-                                @PathParam ("friend_name") String friend_name)
+   public Response add_friend(@PathParam ("user_name") String   user_name,
+                              @PathParam ("friend_name") String friend_name)
    {
       synchronized (lock)
       {
@@ -311,7 +222,7 @@ public class Orac
          User friend = users.get(friend_name);
          if ((user != null) && (friend != null))
          {
-            if (orac.befriendUser(user_name, friend_name))
+            if (orac.add_friend(user_name, friend_name, 0.0f))
             {
                return(Response.status(200).build());
             }
@@ -328,12 +239,12 @@ public class Orac
    }
 
 
-   // Unfriend user.
+   // Delete friend.
    @GET
-   @Path("/unfriend_user/{user_name}/{friend_name}")
+   @Path("/delete_friend/{user_name}/{friend_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response unfriendUser(@PathParam ("user_name") String   user_name,
-                                @PathParam ("friend_name") String friend_name)
+   public Response delete_friend(@PathParam ("user_name") String   user_name,
+                                 @PathParam ("friend_name") String friend_name)
    {
       synchronized (lock)
       {
@@ -341,7 +252,7 @@ public class Orac
          User friend = users.get(friend_name);
          if ((user != null) && (friend != null))
          {
-            if (orac.unfriendUser(user_name, friend_name))
+            if (orac.delete_friend(user_name, friend_name))
             {
                return(Response.status(200).build());
             }
@@ -358,19 +269,19 @@ public class Orac
    }
 
 
-   // Unfriend all.
+   // Clear friends.
    @GET
-   @Path("/unfriend_all/{name}")
+   @Path("/clear_friends/{user_name}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response unfriendAll(@PathParam ("name") String name)
+   public Response clear_friends(@PathParam ("user_name") String user_name)
    {
       synchronized (lock)
       {
-         User user = users.get(name);
+         User user = users.get(user_name);
 
          if (user != null)
          {
-            if (orac.unfriendAll(name))
+            if (orac.clear_friends(user_name))
             {
                return(Response.status(200).build());
             }
@@ -387,20 +298,19 @@ public class Orac
    }
 
 
-   // Rate resource.
+   // Add resource rating.
    @GET
-   @Path("/rate_resource/{user_name}/{resource_name}/{resource_rating}")
+   @Path("/add_rating/{user_name}/{resource_name}/{resource_rating}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response rateResource(@PathParam ("user_name") String       user_name,
-                                @PathParam ("resource_name") String   resource_name,
-                                @PathParam ("resource_rating") String resource_rating)
+   public Response add_rating(@PathParam ("user_name") String       user_name,
+                              @PathParam ("resource_name") String   resource_name,
+                              @PathParam ("resource_rating") String resource_rating)
    {
       synchronized (lock)
       {
-         User     user     = users.get(user_name);
-         Resource resource = resources.get(resource_name);
+         User user = users.get(user_name);
 
-         if ((user != null) && (resource != null))
+         if (user != null)
          {
             float rating = 0.0f;
             try
@@ -411,7 +321,7 @@ public class Orac
             {
                return(Response.status(400).entity("invalid resource_rating parameter").build());
             }
-            if (orac.rateResource(user_name, resource_name, rating))
+            if (orac.add_rating(user_name, resource_name, rating))
             {
                return(Response.status(200).build());
             }

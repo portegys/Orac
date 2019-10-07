@@ -17,173 +17,385 @@ import java.util.Vector;
 
 public class Orac
 {
+   // Maximum users.
+   public static final int MAX_USERS = 1000000;
+
+   // Maximum string size.
+   public static final int MAX_STRING_LENGTH = 100;
+
    // Users.
    public TreeMap<String, User> users;
 
-   // Resources.
-   public TreeMap<String, Resource> resources;
-
    // Constructor.
-   public Orac(TreeMap<String, User> users, TreeMap<String, Resource> resources)
+   public Orac(TreeMap<String, User> users)
    {
-      this.users     = users;
-      this.resources = resources;
+      this.users = users;
    }
 
 
    // Add user.
-   public synchronized boolean addUser(String user)
+   public synchronized boolean add_user(String user_name)
    {
-      if (users.containsKey(user)) { return(false); }
-      users.put(user, new User(user));
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name) && (users.size() >= MAX_USERS)) { return(false); }
+      users.put(user_name, new User(user_name));
       return(true);
    }
 
 
    // Delete user.
-   public synchronized boolean deleteUser(String user)
+   public synchronized boolean delete_user(String user_name)
    {
-      if (!users.containsKey(user)) { return(false); }
-      users.remove(user);
-      for (Map.Entry<String, User> entry : users.entrySet())
-      {
-         User u = entry.getValue();
-         u.friends.remove(user);
-      }
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_friend_all(user_name);
       return(true);
    }
 
 
-   // Add resource.
-   public synchronized boolean addResource(String resource)
+   // Update user friends.
+   public synchronized boolean update_friends(String user_name, int maxFriends)
    {
-      if (resources.containsKey(resource)) { return(false); }
-      resources.put(resource, new Resource(resource));
+      return(update_friends(User.DEFAULT_CATEGORY_NAME, user_name, maxFriends));
+   }
+
+
+   // Update user categorized friends.
+   public synchronized boolean update_friends(String category, String user_name, int maxFriends)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_friends(category);
+      u.friends.put(category, recommend_friends(category, user_name, maxFriends));
       return(true);
    }
 
 
-   // Delete resource.
-   public synchronized boolean deleteResource(String resource)
+   // Update user friends in all categories.
+   public synchronized boolean update_friends_all(String user_name, int maxFriends)
    {
-      if (!resources.containsKey(resource)) { return(false); }
-      resources.remove(resource);
-      for (Map.Entry<String, User> entry : users.entrySet())
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User user = users.get(user_name);
+      for (Map.Entry < String, TreeMap < String, Float >> entry : user.friends.entrySet())
       {
-         User u = entry.getValue();
-         u.ratings.remove(resource);
+         String category = entry.getKey();
+         update_friends(category, user_name, maxFriends);
       }
       return(true);
    }
 
 
    // Recommend new friends for user.
-   public synchronized Vector<String> recommendFriends(String user, int maxFriends)
+   public synchronized TreeMap<String, Float> recommend_friends(String user_name, int maxFriends)
    {
-      Recommender recommender = new Recommender(users, resources);
+      return(recommend_friends(User.DEFAULT_CATEGORY_NAME, user_name, maxFriends));
+   }
 
-      return(recommender.recommendFriends(user, maxFriends));
+
+   // Recommend new friends for user.
+   public synchronized TreeMap<String, Float> recommend_friends(String category, String user_name, int maxFriends)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(null); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(null); }
+      if (!users.containsKey(user_name)) { return(null); }
+      Recommender recommender = new Recommender(users);
+      if (maxFriends > User.MAX_FRIENDS_PER_CATEGORY) { maxFriends = User.MAX_FRIENDS_PER_CATEGORY; }
+      return(recommender.recommend_friends(user_name, maxFriends));
+   }
+
+
+   // Add friend.
+   public synchronized boolean add_friend(String user_name, String friend_name, float distance)
+   {
+      return(add_friend(User.DEFAULT_CATEGORY_NAME, user_name, friend_name, distance));
+   }
+
+
+   // Add categorized friend.
+   public synchronized boolean add_friend(String category, String user_name, String friend_name, float distance)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((friend_name == null) || (friend_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      if (!users.containsKey(friend_name)) { return(false); }
+      if (user_name.equals(friend_name)) { return(false); }
+      User u = users.get(user_name);
+      return(u.add_friend(category, friend_name, distance));
+   }
+
+
+   // Delete friend.
+   public synchronized boolean delete_friend(String user_name, String friend_name)
+   {
+      return(delete_friend(User.DEFAULT_CATEGORY_NAME, user_name, friend_name));
+   }
+
+
+   // Delete categorized friend.
+   public synchronized boolean delete_friend(String category, String user_name, String friend_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((friend_name == null) || (friend_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      if (!users.containsKey(friend_name)) { return(false); }
+      if (user_name.equals(friend_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_friend(category, friend_name);
+      return(true);
+   }
+
+
+   // Delete friends.
+   public synchronized boolean delete_friends(String user_name)
+   {
+      return(delete_friends(User.DEFAULT_CATEGORY_NAME, user_name));
+   }
+
+
+   // Delete categorized friends.
+   public synchronized boolean delete_friends(String category, String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_friends(category);
+      return(true);
+   }
+
+
+   // Delete friend category.
+   public synchronized boolean delete_friend_category(String category, String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_friend_category(category);
+      return(true);
+   }
+
+
+   // Clear all friends.
+   public synchronized boolean clear_friends(String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.clear_friends();
+      return(true);
+   }
+
+
+   // Add resource rating.
+   public synchronized boolean add_rating(String user_name, String resource_name, float rating)
+   {
+      return(add_rating(User.DEFAULT_CATEGORY_NAME, user_name, resource_name, rating));
+   }
+
+
+   // Add categorized resource rating.
+   public synchronized boolean add_rating(String category, String user_name, String resource_name, float rating)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((resource_name == null) || (resource_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      return(u.add_rating(category, resource_name, rating));
+   }
+
+
+   // Delete resource rating.
+   public synchronized boolean delete_rating(String user_name, String resource_name)
+   {
+      return(delete_rating(User.DEFAULT_CATEGORY_NAME, user_name, resource_name));
+   }
+
+
+   // Delete categorized resource rating.
+   public synchronized boolean delete_rating(String category, String user_name, String resource_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((resource_name == null) || (resource_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_rating(category, resource_name);
+      return(true);
+   }
+
+
+   // Delete resource ratings.
+   public synchronized boolean delete_ratings(String user_name)
+   {
+      return(delete_ratings(User.DEFAULT_CATEGORY_NAME, user_name));
+   }
+
+
+   // Delete categorized resource ratings.
+   public synchronized boolean delete_ratings(String category, String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_ratings(category);
+      return(true);
+   }
+
+
+   // Delete resource rating category.
+   public synchronized boolean delete_rating_category(String category, String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.delete_rating_category(category);
+      return(true);
+   }
+
+
+   // Clear all resource ratings.
+   public synchronized boolean clear_ratings(String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      u.clear_ratings();
+      return(true);
    }
 
 
    // Recommend new resources for user using friends' ratings.
-   public synchronized Vector<String> recommendResources(String user, int maxResources)
+   public synchronized TreeMap<String, Float> recommend_resources(String user_name, int maxResources)
    {
+      return(recommend_resources(User.DEFAULT_CATEGORY_NAME, user_name, maxResources));
+   }
+
+
+   // Recommend new resources for user using friends' ratings.
+   public synchronized TreeMap<String, Float> recommend_resources(String category, String user_name, int maxResources)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(null); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(null); }
+      if (!users.containsKey(user_name)) { return(null); }
+      if (!users.get(user_name).friends.containsKey(category)) { return(null); }
+
       // Build list of resources that are not yet rated by user.
       TreeMap<Float, String> ratings = new TreeMap<Float, String>(Collections.reverseOrder());
-      User u = users.get(user);
-      for (String friend : u.friends)
+      User user = users.get(user_name);
+      TreeMap<String, Float> user_ratings = user.ratings.get(category);
+      for (Map.Entry<String, Float> entry : user.friends.get(category).entrySet())
       {
-         User f = users.get(friend);
-         for (Map.Entry<String, Float> entry : f.ratings.entrySet())
+         User friend = users.get(entry.getKey());
+         TreeMap<String, Float> friend_ratings = friend.ratings.get(category);
+         if (friend_ratings != null)
          {
-            String resource = entry.getKey();
-            if (!u.ratings.containsKey(resource))
+            for (Map.Entry<String, Float> elem : friend_ratings.entrySet())
             {
-               Float r = entry.getValue();
-               ratings.put(r, resource);
+               String resource = elem.getKey();
+               if ((user_ratings == null) || !user_ratings.containsKey(resource))
+               {
+                  Float value = entry.getValue();
+                  ratings.put(value, resource);
+               }
             }
          }
       }
 
       // Return highest rated resources.
-      TreeMap<String, Float> work = new TreeMap<String, Float>();
+      TreeMap<String, Float> recommendations = new TreeMap<String, Float>();
+      if (maxResources > User.MAX_RATINGS_PER_CATEGORY) { maxResources = User.MAX_RATINGS_PER_CATEGORY; }
       int count = 0;
       for (Map.Entry<Float, String> entry : ratings.entrySet())
       {
          if (count == maxResources) { break; }
          String resource = entry.getValue();
-         if (!work.containsKey(resource))
+         if (!recommendations.containsKey(resource))
          {
-            work.put(resource, entry.getKey());
+            recommendations.put(resource, entry.getKey());
             count++;
          }
-      }
-      Vector<String> recommendations = new Vector<String>();
-      for (Map.Entry<String, Float> entry : work.entrySet())
-      {
-         recommendations.add(entry.getKey());
       }
       return(recommendations);
    }
 
 
-   // Befriend user.
-   public synchronized boolean befriendUser(String user, String friend)
+   // Recommend new resource rating categories based on friends' ratings.
+   // Returns TreeMap<order, Vector<category name, category count> in descending order of category count.
+   public synchronized TreeMap < Integer, Vector < Object >> recommend_categories(String user_name, int maxCategories)
    {
-      User u = users.get(user);
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(null); }
+      if (!users.containsKey(user_name)) { return(null); }
+      User user = users.get(user_name);
+      TreeMap<String, Integer> category_counts = new TreeMap<String, Integer>();
+      for (Map.Entry < String, TreeMap < String, Float >> entry : user.friends.entrySet())
+      {
+         String category = entry.getKey();
+         for (Map.Entry<String, Float> elem : user.friends.get(category).entrySet())
+         {
+            String friend_name = elem.getKey();
+            User   friend      = users.get(friend_name);
+            for (Map.Entry < String, TreeMap < String, Float >> friend_entry : friend.ratings.entrySet())
+            {
+               String friend_category = friend_entry.getKey();
+               if (!user.ratings.containsKey(category))
+               {
+                  if (category_counts.containsKey(friend_category))
+                  {
+                     category_counts.put(friend_category, category_counts.get(friend_category) + 1);
+                  }
+                  else
+                  {
+                     category_counts.put(friend_category, 1);
+                  }
+               }
+            }
+         }
+      }
 
-      if (u == null) { return(false); }
-      User f = users.get(friend);
-      if (f == null) { return(false); }
-      if (user.equals(friend)) { return(false); }
-      u.befriend(friend);
-      return(true);
+      // Order by category frequency.
+      TreeMap < Integer, Vector < Object >> ordered_categories = new TreeMap < Integer, Vector < Object >> ();
+      int order_num = 0;
+      for (int i = 0; i < maxCategories && category_counts.size() > 0; i++)
+      {
+         String max_resource_name = "";
+         int    max_count         = -1;
+         for (Map.Entry<String, Integer> entry : category_counts.entrySet())
+         {
+            String resource_name = entry.getKey();
+            int    count         = entry.getValue();
+            if ((max_count == -1) || (count > max_count))
+            {
+               max_resource_name = resource_name;
+               max_count         = count;
+            }
+         }
+         if (max_count != -1)
+         {
+            category_counts.remove(max_resource_name);
+            Vector<Object> category_count = new Vector<Object>();
+            category_count.add((Object)max_resource_name);
+            category_count.add((Object) new Integer(max_count));
+            ordered_categories.put(order_num, category_count);
+            order_num++;
+         }
+      }
+      return(ordered_categories);
    }
-
-
-   // Unfriend user.
-   public synchronized boolean unfriendUser(String user, String friend)
-   {
-      User u = users.get(user);
-
-      if (u == null) { return(false); }
-      User f = users.get(friend);
-      if (f == null) { return(false); }
-      u.unfriend(friend);
-      return(true);
-   }
-
-
-   // Unfriend all.
-   public synchronized boolean unfriendAll(String user)
-   {
-      User u = users.get(user);
-
-      if (u == null) { return(false); }
-      u.unfriendAll();
-      return(true);
-   }
-
-
-   // Rate resource.
-   public synchronized boolean rateResource(String user, String resource, float rating)
-   {
-      User u = users.get(user);
-
-      if (u == null) { return(false); }
-      Resource r = resources.get(resource);
-      if (r == null) { return(false); }
-      u.rateResource(resource, rating);
-      return(true);
-   }
-
 
    // Clear.
    public synchronized void clear()
    {
       users.clear();
-      resources.clear();
    }
 
 
@@ -200,12 +412,6 @@ public class Orac
          {
             User u = entry.getValue();
             u.save(writer);
-         }
-         writer.writeInt(resources.size());
-         for (Map.Entry<String, Resource> entry : resources.entrySet())
-         {
-            Resource r = entry.getValue();
-            r.save(writer);
          }
       }
       catch (Exception e)
@@ -242,13 +448,6 @@ public class Orac
             User u = User.load(reader);
             users.put(u.name, u);
          }
-         resources.clear();
-         n = reader.readInt();
-         for (int i = 0; i < n; i++)
-         {
-            Resource r = Resource.load(reader);
-            resources.put(r.name, r);
-         }
       }
       catch (Exception e)
       {
@@ -282,39 +481,34 @@ public class Orac
       users.put(user3, new User(user3));
 
       // Create resources.
-      TreeMap<String, Resource> resources = new TreeMap<String, Resource>();
       String resource1 = "Resource 1";
-      resources.put(resource1, new Resource(resource1));
       String resource2 = "Resource 2";
-      resources.put(resource2, new Resource(resource2));
-      Orac orac = new Orac(users, resources);
+
+      // Create Orac.
+      Orac orac = new Orac(users);
 
       // Rate resources.
-      orac.rateResource(user1, resource1, 1.0f);
-      orac.rateResource(user2, resource1, 2.0f);
-      orac.rateResource(user2, resource2, 2.0f);
-      orac.rateResource(user3, resource2, 3.0f);
+      orac.add_rating(user1, resource1, 1.0f);
+      orac.add_rating(user2, resource1, 2.0f);
+      orac.add_rating(user2, resource2, 2.0f);
+      orac.add_rating(user3, resource2, 3.0f);
 
-      // Recommend and add friend.
-      Vector<String> recommendations = orac.recommendFriends(user1, 1);
-      String         friend          = recommendations.get(0);
-      System.out.println("Friend recommendation for " + user1 + ": " + friend);
-      orac.befriendUser(user1, friend);
+      // Add recommended friend.
+      orac.update_friends(user1, 1);
 
       // Recommend resources.
-      recommendations = orac.recommendResources(user1, 3);
       System.out.println("Resource recommendations for " + user1 + ":");
-      for (int i = 0, j = recommendations.size(); i < j; i++)
+      TreeMap<String, Float> recommendations = orac.recommend_resources(user1, 3);
+      for (Map.Entry<String, Float> entry : recommendations.entrySet())
       {
-         String resource = recommendations.get(i);
-         System.out.println("Resource name=" + resource);
+         String resource = entry.getKey();
+         Float  value    = entry.getValue();
+         System.out.println("Resource name=" + resource + ", rating=" + value);
       }
 
       // Validate.
       System.out.println(orac.users.get(user1).toString());
       System.out.println(orac.users.get(user2).toString());
       System.out.println(orac.users.get(user3).toString());
-      System.out.println(orac.resources.get(resource1).toString());
-      System.out.println(orac.resources.get(resource2).toString());
    }
 }

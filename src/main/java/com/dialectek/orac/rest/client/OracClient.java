@@ -29,41 +29,36 @@ public class OracClient
 
          // Add some users.
          String user1 = URIUtil.encodeQuery("User 1");
-         addUser(user1, client);
+         add_user(user1, client);
          String user2 = "User2";
-         addUser(user2, client);
+         add_user(user2, client);
          String user3 = "User3";
-         addUser(user3, client);
-         getUsers(client);
+         add_user(user3, client);
+         get_users(client);
 
          // Add some resources.
          String resource1 = "Resource1";
-         addResource(resource1, client);
          String resource2 = "Resource2";
-         addResource(resource2, client);
-         getResources(client);
 
          // Rate resources.
-         rateResource(user1, resource1, 1.0f, client);
-         rateResource(user2, resource1, 2.0f, client);
-         rateResource(user2, resource2, 2.0f, client);
-         rateResource(user3, resource2, 3.0f, client);
+         add_rating(user1, resource1, 1.0f, client);
+         add_rating(user2, resource1, 2.0f, client);
+         add_rating(user2, resource2, 2.0f, client);
+         add_rating(user3, resource2, 3.0f, client);
 
          // Recommend new friends.
-         recommendFriends(user1, 1, client);
+         recommend_friends(user1, 1, client);
 
          // Befriend user.
-         befriendUser(user1, user2, client);
+         add_friend(user1, user2, client);
 
          // Recommend new resources.
-         recommendResources(user1, 3, client);
+         recommend_resources(user1, 3, client);
 
          // Validate.
-         getUser(user1, client);
-         getUser(user2, client);
-         getUser(user3, client);
-         getResource(resource1, client);
-         getResource(resource2, client);
+         get_user(user1, client);
+         get_user(user2, client);
+         get_user(user3, client);
       }
       catch (Exception e) {
          e.printStackTrace();
@@ -71,12 +66,12 @@ public class OracClient
    }
 
 
-   public static void addUser(String userName, Client client)
+   public static void add_user(String user_name, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "add_user/" + userName);
+            client.resource(REST_ADDRESS + "add_user/" + user_name);
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
@@ -85,12 +80,12 @@ public class OracClient
    }
 
 
-   public static void deleteUser(String userName, Client client)
+   public static void delete_user(String user_name, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "delete_user/" + userName);
+            client.resource(REST_ADDRESS + "delete_user/" + user_name);
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
@@ -99,12 +94,12 @@ public class OracClient
    }
 
 
-   public static void getUser(String userName, Client client)
+   public static void get_user(String user_name, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "get_user/" + userName);
+            client.resource(REST_ADDRESS + "get_user/" + user_name);
          System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
       }
       catch (Exception e) {
@@ -113,7 +108,7 @@ public class OracClient
    }
 
 
-   public static void getUsers(Client client)
+   public static void get_users(Client client)
    {
       try
       {
@@ -127,69 +122,13 @@ public class OracClient
    }
 
 
-   public static void addResource(String resourceName, Client client)
-   {
-      try
-      {
-         WebResource webResource =
-            client.resource(REST_ADDRESS + "add_resource/" + resourceName);
-         webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
-      }
-      catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
-
-
-   public static void deleteResource(String resourceName, Client client)
-   {
-      try
-      {
-         WebResource webResource =
-            client.resource(REST_ADDRESS + "delete_resource/" + resourceName);
-         webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
-      }
-      catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
-
-
-   public static void getResource(String resourceName, Client client)
-   {
-      try
-      {
-         WebResource webResource =
-            client.resource(REST_ADDRESS + "get_resource/" + resourceName);
-         System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
-      }
-      catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
-
-
-   public static void getResources(Client client)
-   {
-      try
-      {
-         WebResource webResource =
-            client.resource(REST_ADDRESS + "get_resources");
-         System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
-      }
-      catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
-
-
    // Recommend new friends.
-   public static void recommendFriends(String userName, int maxFriends, Client client)
+   public static void recommend_friends(String user_name, int maxFriends, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "recommend_friends/" + userName + "/" + maxFriends);
+            client.resource(REST_ADDRESS + "recommend_friends/" + user_name + "/" + maxFriends);
          System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
       }
       catch (Exception e) {
@@ -198,12 +137,12 @@ public class OracClient
    }
 
 
-   public static void recommendResources(String userName, int maxResources, Client client)
+   public static void recommend_resources(String user_name, int maxResources, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "recommend_resources/" + userName + "/" + maxResources);
+            client.resource(REST_ADDRESS + "recommend_resources/" + user_name + "/" + maxResources);
          System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
       }
       catch (Exception e) {
@@ -212,12 +151,12 @@ public class OracClient
    }
 
 
-   public static void getFriends(String userName, Client client)
+   public static void get_friends(String user_name, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "get_friends/" + userName);
+            client.resource(REST_ADDRESS + "get_friends/" + user_name);
          System.out.println(webResource.accept(MediaType.TEXT_PLAIN).get(String.class ));
       }
       catch (Exception e) {
@@ -226,12 +165,12 @@ public class OracClient
    }
 
 
-   public static void befriendUser(String userName, String friendName, Client client)
+   public static void add_friend(String user_name, String friend_name, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "befriend_user/" + userName + "/" + friendName);
+            client.resource(REST_ADDRESS + "add_friend/" + user_name + "/" + friend_name);
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
@@ -240,12 +179,12 @@ public class OracClient
    }
 
 
-   public static void unfriendUser(String userName, String friendName, Client client)
+   public static void delete_friend(String user_name, String friend_name, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "unfriend_user/" + userName + "/" + friendName);
+            client.resource(REST_ADDRESS + "delete_friend/" + user_name + "/" + friend_name);
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
@@ -254,12 +193,12 @@ public class OracClient
    }
 
 
-   public static void unfriendAll(Client client)
+   public static void clear_friends(Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "unfriend_all");
+            client.resource(REST_ADDRESS + "clear_friends");
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
@@ -268,12 +207,12 @@ public class OracClient
    }
 
 
-   public static void rateResource(String userName, String resourceName, float rating, Client client)
+   public static void add_rating(String user_name, String resource_name, float rating, Client client)
    {
       try
       {
          WebResource webResource =
-            client.resource(REST_ADDRESS + "rate_resource/" + userName + "/" + resourceName + "/" + rating);
+            client.resource(REST_ADDRESS + "add_rating/" + user_name + "/" + resource_name + "/" + rating);
          webResource.accept(MediaType.TEXT_PLAIN).get(String.class );
       }
       catch (Exception e) {
