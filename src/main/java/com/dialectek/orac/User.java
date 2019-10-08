@@ -187,6 +187,12 @@ public class User
    // Add categorized resource rating.
    public boolean add_rating(String category, String resource, float rating)
    {
+      // Check rating range.
+      if ((rating < MIN_RATING) || (rating > MAX_RATING))
+      {
+         return(false);
+      }
+
       // Can add to category?
       TreeMap<String, Float> categorizedRatings = ratings.get(category);
       if ((categorizedRatings == null) && (ratings.size() >= MAX_RATING_CATEGORIES))

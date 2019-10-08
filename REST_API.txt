@@ -3,59 +3,37 @@ Orac REST API:
 REST base address:
 http://<host>:8080/Orac/rest/service/
 
-Get user:
-get_user/{user_name}
- 
-Get all users:
-get_users
-
-Add user:
-add_user/{user_name}
-
-Add user with description:
-add_described_user/{user_name}/{description}
-
-Delete user:
-delete_user/{user_name}
-
-Get resource:
-get_resource/{resource_name}
-
-Get all resources:
-get_resources
-
-Add resource.
-add_resource/{resource_name}
-
-Add a resource with description:
-add_described_resource/{resource_name}/{description}
-
-Delete resource:
-delete_resource/{resource_name}
-
-Recommend new friends for user:
-recommend_friends/{user_name}/{max_friends}
-
-Recommend new resources for user:
-recommend_resources/{user_name}/{max_resources}
-
-Get user friends:
-get_friends/{user_name}
-
-Befriend user:
-befriend_user/{user_name}/{friend_name}
-   
-Unfriend user:
-unfriend_user/{user_name}/{friend_name}
-
-Unfriend all:
-unfriend_all/{user_name}
-
-Rate resource:
-rate_resource/{user_name}/{resource_name}/{resource_rating}
-
-Clear data:
-clear
-
-Save data:
-save
+/get_user/{user_name}
+/get_users
+/add_user/{user_name}
+/add_described_user/{user_name}/{description}
+/delete_user/{user_name}
+/update_friends/{user_name}/{max_friends}
+/update_categorized_friends/{category}/{user_name}/{max_friends}
+/update_friends_all/{user_name}/{max_friends}
+/recommend_friends/{user_name}/{max_friends}
+/recommend_categorized_friends/{category}/{user_name}/{max_friends}
+/get_friends/{user_name}
+/add_friend/{user_name}/{friend_name}/{distance}
+/add_categorized_friend/{category}/{user_name}/{friend_name}/{distance}
+/add_friend_category/{category}/{user_name}
+/delete_friend/{user_name}/{friend_name}
+/delete_categorized_friend/{category}/{user_name}/{friend_name}
+/delete_friends/{user_name}
+/delete_categorized_friends/{category}/{user_name}
+/delete_friend_category/{category}/{user_name}
+/clear_friends/{user_name}
+/add_rating/{user_name}/{resource_name}/{rating}
+/add_categorized_rating/{category}/{user_name}/{resource_name}/{rating}
+/add_rating_category/{category}/{user_name}
+/delete_rating/{user_name}/{resource_name}
+/delete_categorized_rating/{category}/{user_name}/{resource_name}
+/delete_ratings/{user_name}
+/delete_categorized_ratings/{category}/{user_name}
+/delete_rating_category/{category}/{user_name}
+/clear_ratings/{user_name}
+/recommend_resources/{user_name}/{max_resources}
+/recommend_categorized_resources/{category}/{user_name}/{max_resources}
+/recommend_categories/{user_name}/{max_categories}
+/clear
+/save

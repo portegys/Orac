@@ -74,7 +74,7 @@ public class Orac
    }
 
 
-   // Update user friends in all categories.
+   // Update user friends in all current categories.
    public synchronized boolean update_friends_all(String user_name, int maxFriends)
    {
       if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
@@ -96,15 +96,15 @@ public class Orac
    }
 
 
-   // Recommend new friends for user.
+   // Recommend new categorized friends for user.
    public synchronized TreeMap<String, Float> recommend_friends(String category, String user_name, int maxFriends)
    {
-      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(null); }
-      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(null); }
-      if (!users.containsKey(user_name)) { return(null); }
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(new TreeMap<String, Float>()); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(new TreeMap<String, Float>()); }
+      if (!users.containsKey(user_name)) { return(new TreeMap<String, Float>()); }
       Recommender recommender = new Recommender(users);
       if (maxFriends > User.MAX_FRIENDS_PER_CATEGORY) { maxFriends = User.MAX_FRIENDS_PER_CATEGORY; }
-      return(recommender.recommend_friends(user_name, maxFriends));
+      return(recommender.recommend_friends(category, user_name, maxFriends));
    }
 
 
@@ -126,6 +126,17 @@ public class Orac
       if (user_name.equals(friend_name)) { return(false); }
       User u = users.get(user_name);
       return(u.add_friend(category, friend_name, distance));
+   }
+
+
+   // Add friend category.
+   public synchronized boolean add_friend_category(String category, String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      return(u.add_friend_category(category));
    }
 
 
@@ -158,7 +169,7 @@ public class Orac
    }
 
 
-   // Delete categorized friends.
+   // Delete all friends in category.
    public synchronized boolean delete_friends(String category, String user_name)
    {
       if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
@@ -209,6 +220,17 @@ public class Orac
       if (!users.containsKey(user_name)) { return(false); }
       User u = users.get(user_name);
       return(u.add_rating(category, resource_name, rating));
+   }
+
+
+   // Add rating category.
+   public synchronized boolean add_rating_category(String category, String user_name)
+   {
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(false); }
+      if (!users.containsKey(user_name)) { return(false); }
+      User u = users.get(user_name);
+      return(u.add_rating_category(category));
    }
 
 
@@ -281,13 +303,13 @@ public class Orac
    }
 
 
-   // Recommend new resources for user using friends' ratings.
+   // Recommend new resources in category for user using friends' ratings.
    public synchronized TreeMap<String, Float> recommend_resources(String category, String user_name, int maxResources)
    {
-      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(null); }
-      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(null); }
-      if (!users.containsKey(user_name)) { return(null); }
-      if (!users.get(user_name).friends.containsKey(category)) { return(null); }
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(new TreeMap<String, Float>()); }
+      if ((category == null) || (category.length() > MAX_STRING_LENGTH)) { return(new TreeMap<String, Float>()); }
+      if (!users.containsKey(user_name)) { return(new TreeMap<String, Float>()); }
+      if (!users.get(user_name).friends.containsKey(category)) { return(new TreeMap<String, Float>()); }
 
       // Build list of resources that are not yet rated by user.
       TreeMap<Float, String> ratings = new TreeMap<Float, String>(Collections.reverseOrder());
@@ -304,7 +326,7 @@ public class Orac
                String resource = elem.getKey();
                if ((user_ratings == null) || !user_ratings.containsKey(resource))
                {
-                  Float value = entry.getValue();
+                  Float value = elem.getValue();
                   ratings.put(value, resource);
                }
             }
@@ -333,8 +355,8 @@ public class Orac
    // Returns TreeMap<order, Vector<category name, category count> in descending order of category count.
    public synchronized TreeMap < Integer, Vector < Object >> recommend_categories(String user_name, int maxCategories)
    {
-      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(null); }
-      if (!users.containsKey(user_name)) { return(null); }
+      if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(new TreeMap < Integer, Vector < Object >> ()); }
+      if (!users.containsKey(user_name)) { return(new TreeMap < Integer, Vector < Object >> ()); }
       User user = users.get(user_name);
       TreeMap<String, Integer> category_counts = new TreeMap<String, Integer>();
       for (Map.Entry < String, TreeMap < String, Float >> entry : user.friends.entrySet())
@@ -347,7 +369,7 @@ public class Orac
             for (Map.Entry < String, TreeMap < String, Float >> friend_entry : friend.ratings.entrySet())
             {
                String friend_category = friend_entry.getKey();
-               if (!user.ratings.containsKey(category))
+               if (!user.ratings.containsKey(friend_category))
                {
                   if (category_counts.containsKey(friend_category))
                   {
@@ -471,6 +493,9 @@ public class Orac
    // Main.
    public static void main(String[] args) throws Exception
    {
+      // Test categories.
+      System.out.println("Testing default category");
+
       // Create users.
       TreeMap<String, User> users = new TreeMap<String, User>();
       String                user1 = "User 1";
@@ -496,6 +521,11 @@ public class Orac
       // Add recommended friend.
       orac.update_friends(user1, 1);
 
+      // Validate.
+      System.out.println(orac.users.get(user1).toString());
+      System.out.println(orac.users.get(user2).toString());
+      System.out.println(orac.users.get(user3).toString());
+
       // Recommend resources.
       System.out.println("Resource recommendations for " + user1 + ":");
       TreeMap<String, Float> recommendations = orac.recommend_resources(user1, 3);
@@ -506,9 +536,52 @@ public class Orac
          System.out.println("Resource name=" + resource + ", rating=" + value);
       }
 
-      // Validate.
+      // Test categories.
+      System.out.println("Testing categories");
+
+      // Create categories.
+      String category1 = "people";
+      String category2 = "places";
+
+      orac.clear();
+
+      users.put(user1, new User(user1));
+      users.put(user2, new User(user2));
+      users.put(user3, new User(user3));
+
+      // Rate resources.
+      orac.add_rating(category1, user1, resource1, 1.0f);
+      orac.add_rating(user2, resource2, 3.0f);
+      orac.add_rating(category2, user2, resource2, 5.0f);
+      orac.add_rating(category1, user3, resource1, 2.0f);
+      orac.add_rating(category1, user3, resource2, 2.0f);
+
+      // Validate before.
+      System.out.println("Users before:");
       System.out.println(orac.users.get(user1).toString());
       System.out.println(orac.users.get(user2).toString());
       System.out.println(orac.users.get(user3).toString());
+
+      // Add recommended friends.
+      orac.update_friends(category1, user1, 3);
+
+      // Validate.
+      System.out.println("Users after:");
+      System.out.println(orac.users.get(user1).toString());
+      System.out.println(orac.users.get(user2).toString());
+      System.out.println(orac.users.get(user3).toString());
+
+      // Recommend resources.
+      System.out.println("Resource recommendations for " + user1 + ":");
+      recommendations = orac.recommend_resources(category1, user1, 3);
+      for (Map.Entry<String, Float> entry : recommendations.entrySet())
+      {
+         String resource = entry.getKey();
+         Float  value    = entry.getValue();
+         System.out.println("Resource name=" + resource + ", rating=" + value);
+      }
+
+      TreeMap < Integer, Vector < Object >> categories = orac.recommend_categories(user1, 2);
+      System.out.println(categories.toString());
    }
 }
