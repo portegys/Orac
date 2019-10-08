@@ -14,8 +14,10 @@ http://<host>:8080/Orac/rest/service/
 /recommend_friends/{user_name}/{max_friends}
 /recommend_categorized_friends/{category}/{user_name}/{max_friends}
 /get_friends/{user_name}
-/add_friend/{user_name}/{friend_name}/{distance}
-/add_categorized_friend/{category}/{user_name}/{friend_name}/{distance}
+/add_friend/{user_name}/{friend_name}
+/add_categorized_friend/{category}/{user_name}/{friend_name}
+/add_friend_with_distance/{user_name}/{friend_name}/{distance}
+/add_categorized_friend_with_distance/{category}/{user_name}/{friend_name}/{distance}
 /add_friend_category/{category}/{user_name}
 /delete_friend/{user_name}/{friend_name}
 /delete_categorized_friend/{category}/{user_name}/{friend_name}

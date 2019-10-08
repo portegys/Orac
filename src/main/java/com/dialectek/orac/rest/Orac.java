@@ -95,11 +95,18 @@ public class Orac
    {
       synchronized (lock)
       {
-         orac.add_user(user_name);
-         User user = users.get(user_name);
-         user.description = description;
-         users.put(user_name, user);
-         return(Response.status(200).build());
+         if (description.length() <= com.dialectek.orac.Orac.MAX_STRING_LENGTH)
+         {
+            orac.add_user(user_name);
+            User user = users.get(user_name);
+            user.description = description;
+            users.put(user_name, user);
+            return(Response.status(200).build());
+         }
+         else
+         {
+            return(Response.status(400).entity("invalid description parameter").build());
+         }
       }
    }
 
@@ -341,11 +348,72 @@ public class Orac
 
    // Add friend.
    @GET
-   @Path("/add_friend/{user_name}/{friend_name}/{distance}")
+   @Path("/add_friend/{user_name}/{friend_name}")
    @Produces(MediaType.TEXT_PLAIN)
    public Response add_friend(@PathParam ("user_name") String   user_name,
-                              @PathParam ("friend_name") String friend_name,
-                              @PathParam ("distance") String    distance)
+                              @PathParam ("friend_name") String friend_name)
+   {
+      synchronized (lock)
+      {
+         User user   = users.get(user_name);
+         User friend = users.get(friend_name);
+         if ((user != null) && (friend != null))
+         {
+            if (orac.add_friend(user_name, friend_name, 0.0f))
+            {
+               return(Response.status(200).build());
+            }
+            else
+            {
+               return(Response.status(400).build());
+            }
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
+      }
+   }
+
+
+   // Add categorized friend.
+   @GET
+   @Path("/add_categorized_friend/{category}/{user_name}/{friend_name}")
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response add_categorized_friend(@PathParam ("category") String    category,
+                                          @PathParam ("user_name") String   user_name,
+                                          @PathParam ("friend_name") String friend_name)
+   {
+      synchronized (lock)
+      {
+         User user   = users.get(user_name);
+         User friend = users.get(friend_name);
+         if ((user != null) && (friend != null))
+         {
+            if (orac.add_friend(category, user_name, friend_name, 0.0f))
+            {
+               return(Response.status(200).build());
+            }
+            else
+            {
+               return(Response.status(400).build());
+            }
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
+      }
+   }
+
+
+   // Add friend with distance.
+   @GET
+   @Path("/add_friend_with_distance/{user_name}/{friend_name}/{distance}")
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response add_friend_with_distance(@PathParam ("user_name") String   user_name,
+                                            @PathParam ("friend_name") String friend_name,
+                                            @PathParam ("distance") String    distance)
    {
       synchronized (lock)
       {
@@ -383,14 +451,14 @@ public class Orac
    }
 
 
-   // Add categorized friend.
+   // Add categorized friend with distance.
    @GET
-   @Path("/add_categorized_friend/{category}/{user_name}/{friend_name}/{distance}")
+   @Path("/add_categorized_friend_with_distance/{category}/{user_name}/{friend_name}/{distance}")
    @Produces(MediaType.TEXT_PLAIN)
-   public Response add_categorized_friend(@PathParam ("category") String    category,
-                                          @PathParam ("user_name") String   user_name,
-                                          @PathParam ("friend_name") String friend_name,
-                                          @PathParam ("distance") String    distance)
+   public Response add_categorized_friend_with_distance(@PathParam ("category") String    category,
+                                                        @PathParam ("user_name") String   user_name,
+                                                        @PathParam ("friend_name") String friend_name,
+                                                        @PathParam ("distance") String    distance)
    {
       synchronized (lock)
       {
