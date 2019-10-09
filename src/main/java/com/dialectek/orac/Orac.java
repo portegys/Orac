@@ -48,8 +48,12 @@ public class Orac
    {
       if ((user_name == null) || (user_name.length() > MAX_STRING_LENGTH)) { return(false); }
       if (!users.containsKey(user_name)) { return(false); }
-      User u = users.get(user_name);
-      u.delete_friend_all(user_name);
+      for (Map.Entry<String, User> entry : users.entrySet())
+      {
+         User u = entry.getValue();
+         u.delete_friend_all(user_name);
+      }
+      users.remove(user_name);
       return(true);
    }
 

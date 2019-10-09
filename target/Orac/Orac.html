@@ -1,9 +1,49 @@
 <html>
 <body>
 <h1>Orac recommendation system</h1>
-<form method="get" action="/rest/service/add_user" >
-<p>User name: <input type="text" name="user" /></p>
-<input type="submit" value="Add" />
-</form>
+
+<script type="text/javascript">
+var address = "http://localhost:8080/Orac/rest/service/"
+function get_user() {
+    var obj = document.getElementById("get_user_id");
+    var user_name = obj.value;
+    var dst = address + "get_user/" + user_name;
+    window.location = dst;
+}
+function get_users() {
+    var dst = address + "get_users";
+    window.location = dst;
+}
+function add_user() {
+    var obj = document.getElementById("add_user_id");
+    var user_name = obj.value;
+    var dst = address + "add_user/" + user_name;
+    window.location = dst;
+}
+function delete_user() {
+    var obj = document.getElementById("delete_user_id");
+    var user_name = obj.value;
+    var dst = address + "delete_user/" + user_name;
+    window.location = dst;
+}
+</script>
+<span id="get_user_form">
+    <input type="text" placeholder="User name" id="get_user_id" />
+    <input type="button" value="Get user" onClick="get_user(); return false" />
+</span>
+<p>
+<span id="get_users">
+    <input type="button" value="Get users" onClick="get_users(); return false" />
+</span>
+<p>
+<span id="add_user_form">
+    <input type="text" placeholder="User name" id="add_user_id" />
+    <input type="button" value="Add user" onClick="add_user(); return false" />
+</span>
+<p>
+<span id="delete_user_form">
+    <input type="text" placeholder="User name" id="delete_user_id" />
+    <input type="button" value="Delete user" onClick="delete_user(); return false" />
+</span>
 </body>
 </html>
