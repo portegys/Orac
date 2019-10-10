@@ -22,9 +22,6 @@ public class Orac
    // Orac recommender.
    public static com.dialectek.orac.Orac orac;
 
-   // File store.
-   public static final String ORAC_FILE = "orac.dat";
-
    // Synchronization.
    private static Object lock;
 
@@ -33,7 +30,7 @@ public class Orac
    {
       users = new TreeMap<String, User>();
       orac  = new com.dialectek.orac.Orac(users);
-      orac.load(ORAC_FILE);
+      orac.load();
       lock = new Object();
    }
 
@@ -701,6 +698,27 @@ public class Orac
    }
 
 
+   // Get all resource ratings.
+   @GET
+   @Path("/get_ratings/{user_name}")
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response get_ratings(@PathParam ("user_name") String user_name)
+   {
+      synchronized (lock)
+      {
+         User user = users.get(user_name);
+         if (user != null)
+         {
+            return(Response.status(200).entity(user.ratings.entrySet().toString()).build());
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
+      }
+   }
+
+
    // Add resource rating.
    @GET
    @Path("/add_rating/{user_name}/{resource_name}/{rating}")
@@ -1122,7 +1140,27 @@ public class Orac
    {
       synchronized (lock)
       {
-         if (orac.save(ORAC_FILE))
+         if (orac.save())
+         {
+            return(Response.status(200).build());
+         }
+         else
+         {
+            return(Response.status(404).build());
+         }
+      }
+   }
+
+
+   // Load.
+   @GET
+   @Path("/load")
+   @Produces(MediaType.TEXT_PLAIN)
+   public Response load()
+   {
+      synchronized (lock)
+      {
+         if (orac.load())
          {
             return(Response.status(200).build());
          }

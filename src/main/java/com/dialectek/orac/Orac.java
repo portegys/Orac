@@ -23,6 +23,9 @@ public class Orac
    // Maximum string size.
    public static final int MAX_STRING_LENGTH = 100;
 
+   // File store.
+   public static final String ORAC_FILE = "orac.dat";
+
    // Users.
    public TreeMap<String, User> users;
 
@@ -390,7 +393,7 @@ public class Orac
 
       // Order by category frequency.
       TreeMap < Integer, Vector < Object >> ordered_categories = new TreeMap < Integer, Vector < Object >> ();
-      int order_num = 0;
+      int order_num = 1;
       for (int i = 0; i < maxCategories && category_counts.size() > 0; i++)
       {
          String max_resource_name = "";
@@ -426,13 +429,13 @@ public class Orac
 
 
    // Save.
-   public synchronized boolean save(String filename)
+   public synchronized boolean save()
    {
       DataOutputStream writer = null;
 
       try
       {
-         writer = new DataOutputStream(new FileOutputStream(filename));
+         writer = new DataOutputStream(new FileOutputStream(ORAC_FILE));
          writer.writeInt(users.size());
          for (Map.Entry<String, User> entry : users.entrySet())
          {
@@ -460,13 +463,13 @@ public class Orac
 
 
    // Load.
-   public synchronized boolean load(String filename)
+   public synchronized boolean load()
    {
       DataInputStream reader = null;
 
       try
       {
-         reader = new DataInputStream(new FileInputStream(filename));
+         reader = new DataInputStream(new FileInputStream(ORAC_FILE));
          users.clear();
          int n = reader.readInt();
          for (int i = 0; i < n; i++)
