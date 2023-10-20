@@ -2,6 +2,8 @@ Orac recommendation system.
 
 Users rate and recommend resources.
 
+Descripition: Recommender.pdf
+
 1. Add users.
 2. Users rate resources.
 3. Update users' friends to be those users that have similar resource ratings.
